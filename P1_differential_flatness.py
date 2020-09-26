@@ -107,8 +107,8 @@ def compute_controls(traj):
     ########## Code starts here ##########
     # initiate arrays
     num_rows = np.shape(traj)[0]
-    V = np.zeros(N)
-    om = np.zeros(N)
+    V = np.zeros(num_rows)
+    om = np.zeros(num_rows)
 
     # loop through trajectory to calculate each V and om
     for i in range(num_rows):
@@ -150,7 +150,7 @@ def compute_arc_length(V, t):
     """
     s = None
     ########## Code starts here ##########
-
+    s = cumtrapz(V, t, initial=0)
     ########## Code ends here ##########
     return s
 
@@ -171,6 +171,11 @@ def rescale_V(V, om, V_max, om_max):
     Hint: This should only take one or two lines.
     """
     ########## Code starts here ##########
+    # create an array that checks omega constraint (while handling divide by 0 case)
+    V_omega_constraint = np.where(om == 0, V_max, om_max * (V / abs(om)))
+
+    # then set V_tilde to minimum of original V, V_max, V_omega_constraint
+    V_tilde = np.minimum(V, np.minimum(V_max, V_omega_constraint))
 
     ########## Code ends here ##########
     return V_tilde
@@ -188,7 +193,8 @@ def compute_tau(V_tilde, s):
     Hint: Use the function cumtrapz. This should take one line.
     """
     ########## Code starts here ##########
-
+    tau = cumtrapz(np.reciprocal(V_tilde), s, initial=0)
+    arr = np.reciprocal(V_tilde)
     ########## Code ends here ##########
     return tau
 
@@ -205,7 +211,7 @@ def rescale_om(V, om, V_tilde):
     Hint: This should take one line.
     """
     ########## Code starts here ##########
-
+    om_tilde = (V_tilde / V) * om
     ########## Code ends here ##########
     return om_tilde
 
