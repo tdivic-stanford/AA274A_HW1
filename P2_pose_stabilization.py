@@ -1,5 +1,5 @@
 import numpy as np
-from utils import wrapToPi
+from utils import wrapToPi, simulate_car_dyn
 
 # command zero velocities once we are this close to the goal
 RHO_THRES = 0.05
@@ -34,6 +34,28 @@ class PoseController:
         may also be useful, look up its documentation
         """
         ########## Code starts here ##########
+        # translate the position vector to the goal frame
+        translated_pos_vector = np.array([x, y, 0]) - np.array([self.x_g, self.y_g, 0])
+
+        # rotate the position vector to the goal frame
+        R_goal = np.array([[np.cos(self.th_g), -np.sin(self.th_g), 0],
+                           [np.sin(self.th_g), np.cos(self.th_g), 0],
+                           [0, 0, 1]])
+        pos_vector_in_goal = R_goal.dot(translated_pos_vector)
+
+        # put theta in terms of the new frame
+        th_in_goal = th - self.th_g
+
+        # convert x, y, th to polar coordinates in the goal frame
+        new_x = pos_vector_in_goal[0]
+        new_y = pos_vector_in_goal[1]
+        rho = np.sqrt(new_x**2 + new_y**2)
+        alpha = wrapToPi(np.arctan2(new_y, new_x) - th_in_goal)
+        delta = wrapToPi(alpha + th_in_goal)
+
+        # calculate the controls
+        V = self.k1 * rho * np.cos(alpha)
+        om = self.k2 * alpha + self.k1 * np.sinc(alpha) * np.cos(alpha) * (alpha + self.k3 * delta)
         
         ########## Code ends here ##########
 
@@ -42,3 +64,33 @@ class PoseController:
         om = np.clip(om, -self.om_max, self.om_max)
 
         return V, om
+
+
+# if __name__ == "__main__":
+#     V_max = 0.5  # max speed
+#     om_max = 1  # max rotational speed
+#     tf = 25  # final time (sec)
+#     dt = 0.005
+#     N = np.ceil(tf / dt).astype(np.int32)
+#
+#     noise_scale = 0 * np.sqrt(0.01)  # noise level
+#
+#     x_g = 5
+#     y_g = 5
+#     th_g = np.pi / 2
+#     k1 = 0.4
+#     k2 = 0.8
+#     k3 = 0.8
+#
+#     controller = PoseController(k1, k2, k3, V_max, om_max)
+#
+#     # Fill these in
+#     x_0_fw = -5.0
+#     y_0_fw = -0.2
+#     th_0_fw = 0
+#
+#     controller.load_goal(x_g, y_g, th_g)
+#
+#     times_fw = np.arange(0, tf + dt / 2, dt)
+#     states_fw, ctrl_fw = simulate_car_dyn(x_0_fw, y_0_fw, th_0_fw, times_fw, controller=controller,
+#                                           noise_scale=noise_scale)
