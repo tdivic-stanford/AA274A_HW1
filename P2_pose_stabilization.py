@@ -65,32 +65,3 @@ class PoseController:
 
         return V, om
 
-
-# if __name__ == "__main__":
-#     V_max = 0.5  # max speed
-#     om_max = 1  # max rotational speed
-#     tf = 25  # final time (sec)
-#     dt = 0.005
-#     N = np.ceil(tf / dt).astype(np.int32)
-#
-#     noise_scale = 0 * np.sqrt(0.01)  # noise level
-#
-#     x_g = 5
-#     y_g = 5
-#     th_g = np.pi / 2
-#     k1 = 0.4
-#     k2 = 0.8
-#     k3 = 0.8
-#
-#     controller = PoseController(k1, k2, k3, V_max, om_max)
-#
-#     # Fill these in
-#     x_0_fw = -5.0
-#     y_0_fw = -0.2
-#     th_0_fw = 0
-#
-#     controller.load_goal(x_g, y_g, th_g)
-#
-#     times_fw = np.arange(0, tf + dt / 2, dt)
-#     states_fw, ctrl_fw = simulate_car_dyn(x_0_fw, y_0_fw, th_0_fw, times_fw, controller=controller,
-#                                           noise_scale=noise_scale)
