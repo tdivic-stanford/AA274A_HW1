@@ -34,28 +34,22 @@ class PoseController:
         may also be useful, look up its documentation
         """
         ########## Code starts here ##########
-        # translate the position vector to the goal frame
-        translated_pos_vector = np.array([x, y, 0]) - np.array([self.x_g, self.y_g, 0])
+        # get differences in position
+        x_diff = self.x_g - x
+        y_diff = self.y_g - y
 
-        # rotate the position vector to the goal frame
-        R_goal = np.array([[np.cos(self.th_g), -np.sin(self.th_g), 0],
-                           [np.sin(self.th_g), np.cos(self.th_g), 0],
-                           [0, 0, 1]])
-        pos_vector_in_goal = R_goal.dot(translated_pos_vector)
+        # calculate polar coordinates
+        rho = np.sqrt(x_diff**2 + y_diff**2)
+        alpha = wrapToPi(np.arctan2(y_diff, x_diff) - th)
+        delta = wrapToPi(alpha + th - self.th_g)
 
-        # put theta in terms of the new frame
-        th_in_goal = th - self.th_g
-
-        # convert x, y, th to polar coordinates in the goal frame
-        new_x = pos_vector_in_goal[0]
-        new_y = pos_vector_in_goal[1]
-        rho = np.sqrt(new_x**2 + new_y**2)
-        alpha = wrapToPi(np.arctan2(new_y, new_x) - th_in_goal)
-        delta = wrapToPi(alpha + th_in_goal)
-
-        # calculate the controls
-        V = self.k1 * rho * np.cos(alpha)
-        om = self.k2 * alpha + self.k1 * np.sinc(alpha / np.pi) * np.cos(alpha) * (alpha + self.k3 * delta)
+        # calculate the controls (keeping in mind thresholds)
+        if rho < RHO_THRES and alpha < ALPHA_THRES and delta < DELTA_THRES:
+            V = 0
+            om = 0
+        else:
+            V = self.k1 * rho * np.cos(alpha)
+            om = self.k2 * alpha + self.k1 * np.sinc(alpha / np.pi) * np.cos(alpha) * (alpha + self.k3 * delta)
         
         ########## Code ends here ##########
 
