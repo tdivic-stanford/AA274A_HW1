@@ -55,7 +55,7 @@ class PoseController:
 
         # calculate the controls
         V = self.k1 * rho * np.cos(alpha)
-        om = self.k2 * alpha + self.k1 * np.sinc(alpha) * np.cos(alpha) * (alpha + self.k3 * delta)
+        om = self.k2 * alpha + self.k1 * np.sinc(alpha / np.pi) * np.cos(alpha) * (alpha + self.k3 * delta)
         
         ########## Code ends here ##########
 
